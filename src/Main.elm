@@ -1,9 +1,14 @@
 module Main exposing (..)
 
+import Browser exposing (Document)
 import Browser
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (keyCode, on, onClick, onInput)
+import Element exposing (..)
+import Element.Background as Background
+import Element.Border as Border
+import Element.Font as Font
+import Element.Input as Input
+import Element.Region as Region
+import Html exposing (Html)
 import Json.Decode as Json
 import Random
 import Random.List exposing (choose, shuffle)
@@ -14,8 +19,9 @@ import Words
 -- MAIN
 
 
-main =
-    Browser.element 
+main : Program () Model Msg
+main = 
+    Browser.document
         { init = init, update = update, view = view, subscriptions = subscriptions }
 
 
@@ -51,7 +57,6 @@ init _ =
 type Msg
     = GuessChanged String
     | Check
-    | KeyDown Int
     | Next
     | NextWord ( Maybe String, List String )
     | JumbledWord (List Char)
@@ -63,14 +68,6 @@ update msg model =
     case msg of
         GuessChanged newGuess ->
             ( { model | guess = newGuess, message = "" }, Cmd.none )
-
-        KeyDown key ->
-            case key of
-                13 ->
-                    checkMatch model
-
-                _ ->
-                    ( model, Cmd.none )
 
         Check ->
             checkMatch model
@@ -113,30 +110,81 @@ match s1 s2 =
     String.toLower s1 == String.toLower s2
 
 
-onKeyDown : (Int -> msg) -> Attribute msg
-onKeyDown tagger =
-    on "keydown" (Json.map tagger keyCode)
-
-
 
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> Document Msg
 view model =
-    div []
-        [ p [] [ text model.jumbledWord ]
-        , viewInput "text" "Guess" model.guess GuessChanged
-        , button [ onClick Check ] [ text "Check" ]
-        , button [ onClick GiveUp ] [ text "Give up" ]
-        , button [ onClick Next ] [ text "Next" ]
-        , p [] [ text model.message ]
+    { title = "Jumbles"
+    , body = [ getBody model]
+    }
+
+getBody : Model -> Html Msg
+getBody model =
+    Element.layout
+        [ Font.size 20
+        , paddingEach { top = 30, right = 0, left = 0, bottom = 0 }
         ]
-
-
-viewInput : String -> String -> String -> (String -> Msg) -> Html Msg
-viewInput t p v toMsg =
-    input [ type_ t, placeholder p, value v, onInput toMsg, onKeyDown KeyDown ] []
+        <|
+        Element.column
+            [ width (px 800)
+            , centerX
+            , spacing 30
+            , padding 10
+            ]
+            [ el
+                [ Region.heading 1
+                , alignLeft
+                , Font.size 36
+                , spacing 20
+                , Font.color (Element.rgb 0.2 0.34 0.98)
+                ]
+                (text "Jumbles")
+            , row
+                [ spacing 12
+                ]
+                [ (text model.jumbledWord) ]
+            , Input.text
+                [ spacing 12
+                ]
+                { label = Input.labelHidden "Guess"
+                , onChange = GuessChanged
+                , text = model.guess
+                , placeholder = Just <| Input.placeholder [] (text "Guess")
+                }
+            , Input.button
+                [ Background.color (Element.rgb 0.4 0.78 0.4)
+                , paddingXY 32 16
+                , Border.rounded 3
+                , width fill
+                ]
+                { onPress = Just Check
+                , label = Element.text "Check"
+                }
+            , Input.button
+                [ Background.color (Element.rgb 0.4 0.78 0.4)
+                , paddingXY 32 16
+                , Border.rounded 3
+                , width fill
+                ]
+                { onPress = Just GiveUp
+                , label = Element.text "Give up"
+                }
+            , Input.button
+                [ Background.color (Element.rgb 0.4 0.78 0.4)
+                , paddingXY 32 16
+                , Border.rounded 3
+                , width fill
+                ]
+                { onPress = Just Next
+                , label = Element.text "Next"
+                }
+            , row
+                [ spacing 12
+                ]
+                [ (text model.message) ]
+            ]
 
 
 
