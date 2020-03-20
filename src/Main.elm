@@ -1,7 +1,6 @@
 module Main exposing (..)
 
 import Browser exposing (Document)
-import Browser
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -20,7 +19,7 @@ import Words
 
 
 main : Program () Model Msg
-main = 
+main =
     Browser.document
         { init = init, update = update, view = view, subscriptions = subscriptions }
 
@@ -117,19 +116,19 @@ match s1 s2 =
 view : Model -> Document Msg
 view model =
     { title = "Jumbles"
-    , body = [ getBody model]
+    , body = [ getBody model ]
     }
+
 
 getBody : Model -> Html Msg
 getBody model =
     Element.layout
         [ Font.size 20
-        , paddingEach { top = 30, right = 0, left = 0, bottom = 0 }
+        , paddingEach { top = 30, right = 0, left = 15, bottom = 0 }
         ]
-        <|
+    <|
         Element.column
             [ width (px 800)
-            , centerX
             , spacing 30
             , padding 10
             ]
@@ -137,7 +136,7 @@ getBody model =
             , row
                 [ spacing 12
                 ]
-                [ (text model.jumbledWord) ]
+                [ text model.jumbledWord ]
             , Input.text
                 [ spacing 12
                 ]
@@ -146,37 +145,11 @@ getBody model =
                 , text = model.guess
                 , placeholder = Just <| Input.placeholder [] (text "Guess")
                 }
-            , Input.button
-                [ Background.color (Element.rgb 0.4 0.78 0.4)
-                , paddingXY 32 16
-                , Border.rounded 3
-                , width fill
-                ]
-                { onPress = Just Check
-                , label = Element.text "Check"
-                }
-            , Input.button
-                [ Background.color (Element.rgb 0.4 0.78 0.4)
-                , paddingXY 32 16
-                , Border.rounded 3
-                , width fill
-                ]
-                { onPress = Just GiveUp
-                , label = Element.text "Give up"
-                }
-            , Input.button
-                [ Background.color (Element.rgb 0.4 0.78 0.4)
-                , paddingXY 32 16
-                , Border.rounded 3
-                , width fill
-                ]
-                { onPress = Just Next
-                , label = Element.text "Next"
-                }
+            , buttons
             , row
                 [ spacing 12
                 ]
-                [ (text model.message) ]
+                [ text model.message ]
             ]
 
 
@@ -190,6 +163,32 @@ heading =
         , Font.color (Element.rgb 0.2 0.34 0.98)
         ]
         (text "Jumbles")
+
+
+buttons : Element Msg
+buttons =
+    column
+        [ spacing 5
+        , width (px 800)
+        ]
+        [ button Check "Check" (Element.rgb 0.4 0.78 0.4)
+        , button GiveUp "Give up" (Element.rgb 0.55 0.3 0.8)
+        , button Next "Next" (Element.rgb 0.4 0.78 0.8)
+        ]
+
+
+button : Msg -> String -> Element.Color -> Element Msg
+button msg lbl color =
+    Input.button
+        [ Background.color color
+        , paddingXY 32 16
+        , Border.rounded 6
+        , width fill
+        ]
+        { onPress = Just msg
+        , label = Element.text lbl
+        }
+
 
 
 -- SUBSCRIPTIONS
