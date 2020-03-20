@@ -3,10 +3,11 @@ module Main exposing (..)
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput, on, keyCode)
+import Html.Events exposing (keyCode, on, onClick, onInput)
+import Json.Decode as Json
 import Random
 import Random.List exposing (choose, shuffle)
-import Json.Decode as Json
+import Words
 
 
 
@@ -14,7 +15,8 @@ import Json.Decode as Json
 
 
 main =
-    Browser.element { init = init, update = update, view = view, subscriptions = subscriptions }
+    Browser.element 
+        { init = init, update = update, view = view, subscriptions = subscriptions }
 
 
 
@@ -36,7 +38,7 @@ init _ =
       , jumbledWord = "emoclew"
       , guess = ""
       , message = ""
-      , words = [ "hello", "abby" ]
+      , words = Words.words
       }
     , Cmd.none
     )
@@ -47,24 +49,26 @@ init _ =
 
 
 type Msg
-    = Guess String
+    = GuessChanged String
     | Check
     | KeyDown Int
     | Next
     | NextWord ( Maybe String, List String )
     | JumbledWord (List Char)
+    | GiveUp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Guess newGuess ->
-            ( { model | guess = newGuess }, Cmd.none )
+        GuessChanged newGuess ->
+            ( { model | guess = newGuess, message = "" }, Cmd.none )
 
         KeyDown key ->
             case key of
                 13 ->
                     checkMatch model
+
                 _ ->
                     ( model, Cmd.none )
 
@@ -89,6 +93,12 @@ update msg model =
         JumbledWord jumbledChars ->
             ( { model | jumbledWord = String.fromList jumbledChars }, Cmd.none )
 
+        GiveUp ->
+            ( { model | message = "Stupid! The word was " ++ model.word }
+            , Cmd.none
+            )
+
+
 checkMatch : Model -> ( Model, Cmd Msg )
 checkMatch model =
     if match model.word model.guess then
@@ -97,6 +107,7 @@ checkMatch model =
     else
         ( { model | message = "Wrong! Try again!" }, Cmd.none )
 
+
 match : String -> String -> Bool
 match s1 s2 =
     String.toLower s1 == String.toLower s2
@@ -104,7 +115,10 @@ match s1 s2 =
 
 onKeyDown : (Int -> msg) -> Attribute msg
 onKeyDown tagger =
-  on "keydown" (Json.map tagger keyCode)
+    on "keydown" (Json.map tagger keyCode)
+
+
+
 -- VIEW
 
 
@@ -112,8 +126,9 @@ view : Model -> Html Msg
 view model =
     div []
         [ p [] [ text model.jumbledWord ]
-        , viewInput "text" "Guess" model.guess Guess
+        , viewInput "text" "Guess" model.guess GuessChanged
         , button [ onClick Check ] [ text "Check" ]
+        , button [ onClick GiveUp ] [ text "Give up" ]
         , button [ onClick Next ] [ text "Next" ]
         , p [] [ text model.message ]
         ]
