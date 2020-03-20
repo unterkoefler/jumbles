@@ -133,14 +133,7 @@ getBody model =
             , spacing 30
             , padding 10
             ]
-            [ el
-                [ Region.heading 1
-                , alignLeft
-                , Font.size 36
-                , spacing 20
-                , Font.color (Element.rgb 0.2 0.34 0.98)
-                ]
-                (text "Jumbles")
+            [ heading
             , row
                 [ spacing 12
                 ]
@@ -186,6 +179,17 @@ getBody model =
                 [ (text model.message) ]
             ]
 
+
+heading : Element Msg
+heading =
+    el
+        [ Region.heading 1
+        , alignLeft
+        , Font.size 36
+        , spacing 20
+        , Font.color (Element.rgb 0.2 0.34 0.98)
+        ]
+        (text "Jumbles")
 
 
 -- SUBSCRIPTIONS
