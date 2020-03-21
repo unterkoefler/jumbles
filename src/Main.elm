@@ -38,15 +38,18 @@ type alias Model =
     , dimensions : Dimensions
     }
 
-type alias Dimensions = 
+
+type alias Dimensions =
     { width : Int
     , height : Int
     }
 
+
 init : Json.Value -> ( Model, Cmd Msg )
 init flags =
     let
-        dimensions = parseFlags flags
+        dimensions =
+            parseFlags flags
     in
     ( { word = "welcome"
       , jumbledWord = "emoclew"
@@ -58,10 +61,12 @@ init flags =
     , Cmd.none
     )
 
+
 parseFlags : Json.Value -> Dimensions
 parseFlags flags =
     Json.decodeValue dimensionsDecoder flags
         |> Result.withDefault defaultDimensions
+
 
 dimensionsDecoder : Json.Decoder Dimensions
 dimensionsDecoder =
@@ -69,11 +74,13 @@ dimensionsDecoder =
         (Json.field "width" Json.int)
         (Json.field "height" Json.int)
 
+
 defaultDimensions =
     { width = 500
     , height = 500
-    } 
-        
+    }
+
+
 
 -- UPDATE
 
@@ -148,52 +155,95 @@ view model =
     , body = [ getBody model ]
     }
 
+
 type ScreenSize
     = Mobile
     | Desktop
 
+
 getScreenSize : Dimensions -> ScreenSize
 getScreenSize dim =
     let
-        { class, orientation } = classifyDevice dim
+        { class, orientation } =
+            classifyDevice dim
     in
-    case (class, orientation) of
+    case ( class, orientation ) of
         ( Phone, Portrait ) ->
             Mobile
-        _ ->
-            Desktop  
 
-baseFontSize = 18
-columnSpacing = 30
-basePadding = { top = 30, right = 5, left = 15, bottom = 0 }
-baseSpacing = 12
-headingFontSize = 2 * baseFontSize
-headingSpacing = 2 * baseSpacing
-buttonSpacing = 5
+        _ ->
+            Desktop
+
+
+baseFontSize =
+    18
+
+
+columnSpacing =
+    30
+
+
+basePadding =
+    { top = 30, right = 5, left = 15, bottom = 0 }
+
+
+baseSpacing =
+    12
+
+
+headingFontSize =
+    2 * baseFontSize
+
+
+headingSpacing =
+    2 * baseSpacing
+
+
+buttonSpacing =
+    5
+
 
 columnWidth : ScreenSize -> Int -> Length
-columnWidth screenSize w = 
+columnWidth screenSize w =
     let
-        max = w - (2  * (basePadding.left + basePadding.right))
+        max =
+            w - (2 * (basePadding.left + basePadding.right))
     in
     case screenSize of
         Mobile ->
             px 400
-                |> maximum max 
+                |> maximum max
+
         Desktop ->
             px 600
-                |> maximum max 
+                |> maximum max
 
+
+headingColor =
+    Element.rgb 0.2 0.34 0.98
+
+
+green =
+    Element.rgb 0.4 0.78 0.4
+
+
+purple =
+    Element.rgb 0.61 0.33 0.88
+
+
+teal =
+    Element.rgb 0.4 0.78 0.8
 
 
 getBody : Model -> Html Msg
 getBody model =
     let
-        screenSize = getScreenSize model.dimensions
+        screenSize =
+            getScreenSize model.dimensions
     in
     Element.layout
         [ Font.size baseFontSize
-        , paddingEach basePadding 
+        , paddingEach basePadding
         ]
     <|
         Element.column
@@ -228,7 +278,7 @@ heading =
         , alignLeft
         , Font.size headingFontSize
         , spacing headingSpacing
-        , Font.color (Element.rgb 0.2 0.34 0.98)
+        , Font.color headingColor
         ]
         (text "Jumbles")
 
@@ -236,11 +286,14 @@ heading =
 buttons : ScreenSize -> Dimensions -> Element Msg
 buttons screenSize dim =
     let
-        w = columnWidth screenSize dim.width
-        group = 
+        w =
+            columnWidth screenSize dim.width
+
+        group =
             case screenSize of
                 Mobile ->
                     column
+
                 Desktop ->
                     row
     in
@@ -248,9 +301,9 @@ buttons screenSize dim =
         [ spacing buttonSpacing
         , width w
         ]
-        [ button Check "Check" (Element.rgb 0.4 0.78 0.4)
-        , button GiveUp "Give up" (Element.rgb 0.55 0.3 0.8)
-        , button Next "Next" (Element.rgb 0.4 0.78 0.8)
+        [ button Check "Check" green
+        , button GiveUp "Give up" purple
+        , button Next "Next" teal
         ]
 
 

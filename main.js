@@ -12081,6 +12081,8 @@ var $mdgriffith$elm_ui$Element$rgb = F3(
 	function (r, g, b) {
 		return A4($mdgriffith$elm_ui$Internal$Model$Rgba, r, g, b, 1);
 	});
+var $author$project$Main$green = A3($mdgriffith$elm_ui$Element$rgb, 0.4, 0.78, 0.4);
+var $author$project$Main$purple = A3($mdgriffith$elm_ui$Element$rgb, 0.61, 0.33, 0.88);
 var $mdgriffith$elm_ui$Internal$Model$AsRow = {$: 'AsRow'};
 var $mdgriffith$elm_ui$Internal$Model$asRow = $mdgriffith$elm_ui$Internal$Model$AsRow;
 var $mdgriffith$elm_ui$Element$row = F2(
@@ -12120,6 +12122,7 @@ var $mdgriffith$elm_ui$Element$spacing = function (x) {
 			x,
 			x));
 };
+var $author$project$Main$teal = A3($mdgriffith$elm_ui$Element$rgb, 0.4, 0.78, 0.8);
 var $author$project$Main$buttons = F2(
 	function (screenSize, dim) {
 		var w = A2($author$project$Main$columnWidth, screenSize, dim.width);
@@ -12139,21 +12142,9 @@ var $author$project$Main$buttons = F2(
 				]),
 			_List_fromArray(
 				[
-					A3(
-					$author$project$Main$button,
-					$author$project$Main$Check,
-					'Check',
-					A3($mdgriffith$elm_ui$Element$rgb, 0.4, 0.78, 0.4)),
-					A3(
-					$author$project$Main$button,
-					$author$project$Main$GiveUp,
-					'Give up',
-					A3($mdgriffith$elm_ui$Element$rgb, 0.55, 0.3, 0.8)),
-					A3(
-					$author$project$Main$button,
-					$author$project$Main$Next,
-					'Next',
-					A3($mdgriffith$elm_ui$Element$rgb, 0.4, 0.78, 0.8))
+					A3($author$project$Main$button, $author$project$Main$Check, 'Check', $author$project$Main$green),
+					A3($author$project$Main$button, $author$project$Main$GiveUp, 'Give up', $author$project$Main$purple),
+					A3($author$project$Main$button, $author$project$Main$Next, 'Next', $author$project$Main$teal)
 				]));
 	});
 var $author$project$Main$columnSpacing = 30;
@@ -12225,6 +12216,7 @@ var $mdgriffith$elm_ui$Internal$Model$Heading = function (a) {
 	return {$: 'Heading', a: a};
 };
 var $mdgriffith$elm_ui$Element$Region$heading = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Describe, $mdgriffith$elm_ui$Internal$Model$Heading);
+var $author$project$Main$headingColor = A3($mdgriffith$elm_ui$Element$rgb, 0.2, 0.34, 0.98);
 var $author$project$Main$headingFontSize = 2 * $author$project$Main$baseFontSize;
 var $author$project$Main$headingSpacing = 2 * $author$project$Main$baseSpacing;
 var $mdgriffith$elm_ui$Internal$Model$FontSize = function (a) {
@@ -12245,8 +12237,7 @@ var $author$project$Main$heading = A2(
 			$mdgriffith$elm_ui$Element$alignLeft,
 			$mdgriffith$elm_ui$Element$Font$size($author$project$Main$headingFontSize),
 			$mdgriffith$elm_ui$Element$spacing($author$project$Main$headingSpacing),
-			$mdgriffith$elm_ui$Element$Font$color(
-			A3($mdgriffith$elm_ui$Element$rgb, 0.2, 0.34, 0.98))
+			$mdgriffith$elm_ui$Element$Font$color($author$project$Main$headingColor)
 		]),
 	$mdgriffith$elm_ui$Element$text('Jumbles'));
 var $mdgriffith$elm_ui$Element$Input$HiddenLabel = function (a) {
