@@ -195,6 +195,10 @@ headingFontSize =
     2 * baseFontSize
 
 
+buttonFontSize =
+    24
+
+
 headingSpacing =
     2 * baseSpacing
 
@@ -311,8 +315,9 @@ button : Msg -> String -> Element.Color -> Element Msg
 button msg lbl color =
     Input.button
         [ Background.color color
-        , paddingXY 0 18
+        , paddingXY 0 12
         , Font.center
+        , Font.size buttonFontSize
         , Border.rounded 6
         , width fill
         ]
