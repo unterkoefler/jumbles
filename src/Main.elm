@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Browser exposing (Document)
+import Browser.Events exposing (onResize)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
@@ -18,7 +19,7 @@ import Words
 -- MAIN
 
 
-main : Program () Model Msg
+main : Program Json.Value Model Msg
 main =
     Browser.document
         { init = init, update = update, view = view, subscriptions = subscriptions }
@@ -34,21 +35,45 @@ type alias Model =
     , guess : String
     , message : String
     , words : List String
+    , dimensions : Dimensions
     }
 
+type alias Dimensions = 
+    { width : Int
+    , height : Int
+    }
 
-init : () -> ( Model, Cmd Msg )
-init _ =
+init : Json.Value -> ( Model, Cmd Msg )
+init flags =
+    let
+        dimensions = parseFlags flags
+    in
     ( { word = "welcome"
       , jumbledWord = "emoclew"
       , guess = ""
       , message = ""
       , words = Words.words
+      , dimensions = dimensions
       }
     , Cmd.none
     )
 
+parseFlags : Json.Value -> Dimensions
+parseFlags flags =
+    Json.decodeValue dimensionsDecoder flags
+        |> Result.withDefault defaultDimensions
 
+dimensionsDecoder : Json.Decoder Dimensions
+dimensionsDecoder =
+    Json.map2 Dimensions
+        (Json.field "width" Json.int)
+        (Json.field "height" Json.int)
+
+defaultDimensions =
+    { width = 500
+    , height = 500
+    } 
+        
 
 -- UPDATE
 
@@ -60,6 +85,7 @@ type Msg
     | NextWord ( Maybe String, List String )
     | JumbledWord (List Char)
     | GiveUp
+    | WindowResized Dimensions
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -94,6 +120,9 @@ update msg model =
             , Cmd.none
             )
 
+        WindowResized newDim ->
+            ( { model | dimensions = newDim }, Cmd.none )
+
 
 checkMatch : Model -> ( Model, Cmd Msg )
 checkMatch model =
@@ -119,35 +148,74 @@ view model =
     , body = [ getBody model ]
     }
 
+type ScreenSize
+    = Mobile
+    | Desktop
+
+getScreenSize : Dimensions -> ScreenSize
+getScreenSize dim =
+    let
+        { class, orientation } = classifyDevice dim
+    in
+    case (class, orientation) of
+        ( Phone, Portrait ) ->
+            Mobile
+        _ ->
+            Desktop  
+
+baseFontSize = 18
+columnSpacing = 30
+basePadding = { top = 30, right = 5, left = 15, bottom = 0 }
+baseSpacing = 12
+headingFontSize = 2 * baseFontSize
+headingSpacing = 2 * baseSpacing
+buttonSpacing = 5
+
+columnWidth : ScreenSize -> Int -> Length
+columnWidth screenSize w = 
+    let
+        max = w - (2  * (basePadding.left + basePadding.right))
+    in
+    case screenSize of
+        Mobile ->
+            px 400
+                |> maximum max 
+        Desktop ->
+            px 600
+                |> maximum max 
+
+
 
 getBody : Model -> Html Msg
 getBody model =
+    let
+        screenSize = getScreenSize model.dimensions
+    in
     Element.layout
-        [ Font.size 20
-        , paddingEach { top = 30, right = 0, left = 15, bottom = 0 }
+        [ Font.size baseFontSize
+        , paddingEach basePadding 
         ]
     <|
         Element.column
-            [ width (px 800)
-            , spacing 30
-            , padding 10
+            [ width <| columnWidth screenSize model.dimensions.width
+            , spacing columnSpacing
             ]
             [ heading
             , row
-                [ spacing 12
+                [ spacing baseSpacing
                 ]
                 [ text model.jumbledWord ]
             , Input.text
-                [ spacing 12
+                [ spacing baseSpacing
                 ]
                 { label = Input.labelHidden "Guess"
                 , onChange = GuessChanged
                 , text = model.guess
                 , placeholder = Just <| Input.placeholder [] (text "Guess")
                 }
-            , buttons
+            , buttons screenSize model.dimensions
             , row
-                [ spacing 12
+                [ spacing baseSpacing
                 ]
                 [ text model.message ]
             ]
@@ -158,18 +226,27 @@ heading =
     el
         [ Region.heading 1
         , alignLeft
-        , Font.size 36
-        , spacing 20
+        , Font.size headingFontSize
+        , spacing headingSpacing
         , Font.color (Element.rgb 0.2 0.34 0.98)
         ]
         (text "Jumbles")
 
 
-buttons : Element Msg
-buttons =
-    column
-        [ spacing 5
-        , width (px 800)
+buttons : ScreenSize -> Dimensions -> Element Msg
+buttons screenSize dim =
+    let
+        w = columnWidth screenSize dim.width
+        group = 
+            case screenSize of
+                Mobile ->
+                    column
+                Desktop ->
+                    row
+    in
+    group
+        [ spacing buttonSpacing
+        , width w
         ]
         [ button Check "Check" (Element.rgb 0.4 0.78 0.4)
         , button GiveUp "Give up" (Element.rgb 0.55 0.3 0.8)
@@ -181,7 +258,8 @@ button : Msg -> String -> Element.Color -> Element Msg
 button msg lbl color =
     Input.button
         [ Background.color color
-        , paddingXY 32 16
+        , paddingXY 0 18
+        , Font.center
         , Border.rounded 6
         , width fill
         ]
@@ -196,4 +274,4 @@ button msg lbl color =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    onResize (\w h -> WindowResized { width = w, height = h })
