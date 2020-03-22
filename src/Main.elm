@@ -36,6 +36,8 @@ type alias Model =
     , message : String
     , words : List String
     , dimensions : Dimensions
+    , score : Int
+    , isRoundOver : Bool
     }
 
 
@@ -57,6 +59,8 @@ init flags =
       , message = ""
       , words = Words.words
       , dimensions = dimensions
+      , score = 0
+      , isRoundOver = False
       }
     , Cmd.none
     )
@@ -105,7 +109,7 @@ update msg model =
             checkMatch model
 
         Next ->
-            ( { model | message = "", word = "", guess = "" }
+            ( { model | message = "", word = "", guess = "", isRoundOver = False }
             , Random.generate NextWord (choose model.words)
             )
 
@@ -123,7 +127,7 @@ update msg model =
             ( { model | jumbledWord = String.fromList jumbledChars }, Cmd.none )
 
         GiveUp ->
-            ( { model | message = "Stupid! The word was " ++ model.word }
+            ( { model | message = "Stupid! The word was " ++ model.word, isRoundOver = True }
             , Cmd.none
             )
 
@@ -134,7 +138,13 @@ update msg model =
 checkMatch : Model -> ( Model, Cmd Msg )
 checkMatch model =
     if match model.word model.guess then
-        ( { model | message = "Correct!" }, Cmd.none )
+        ( { model
+            | message = "Correct!"
+            , score = incrementScore model
+            , isRoundOver = True
+          }
+        , Cmd.none
+        )
 
     else
         ( { model | message = "Wrong! Try again!" }, Cmd.none )
@@ -143,6 +153,15 @@ checkMatch model =
 match : String -> String -> Bool
 match s1 s2 =
     String.toLower s1 == String.toLower s2
+
+
+incrementScore : Model -> Int
+incrementScore model =
+    if model.isRoundOver then
+        model.score
+
+    else
+        model.score + 1
 
 
 
@@ -169,6 +188,9 @@ getScreenSize dim =
     in
     case ( class, orientation ) of
         ( Phone, Portrait ) ->
+            Mobile
+
+        ( Tablet, Portrait ) ->
             Mobile
 
         _ ->
@@ -251,14 +273,17 @@ getBody model =
         ]
     <|
         Element.column
-            [ width <| columnWidth screenSize model.dimensions.width
-            , spacing columnSpacing
-            ]
+            ([ width <| columnWidth screenSize model.dimensions.width
+             , spacing columnSpacing
+             ]
+                ++ responsiveColumnAttributes screenSize
+            )
             [ heading
             , row
                 [ spacing baseSpacing
+                , Font.letterSpacing 2
                 ]
-                [ text model.jumbledWord ]
+                [ text <| String.toUpper model.jumbledWord ]
             , Input.text
                 [ spacing baseSpacing
                 ]
@@ -272,7 +297,21 @@ getBody model =
                 [ spacing baseSpacing
                 ]
                 [ text model.message ]
+            , row
+                [ spacing baseSpacing
+                ]
+                [ text <| "Score: " ++ String.fromInt model.score ]
             ]
+
+
+responsiveColumnAttributes : ScreenSize -> List (Attribute Msg)
+responsiveColumnAttributes screenSize =
+    case screenSize of
+        Mobile ->
+            []
+
+        Desktop ->
+            [ centerX ]
 
 
 heading : Element Msg
